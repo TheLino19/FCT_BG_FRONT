@@ -7,7 +7,7 @@ import { ResponseModel } from '../../models/user.model';
     providedIn: 'root'
 })
 export class DeleteUserUseCase {
-    constructor(@Inject('UserRepository') private userRepository: UserRepository) { }
+    constructor(private userRepository: UserRepository) { }
 
     execute(id: number): Observable<ResponseModel<number>> {
         return this.userRepository.deleteUser(id);

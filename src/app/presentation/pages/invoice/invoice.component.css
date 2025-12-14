@@ -1,0 +1,4 @@
+/* Tailwind handles most styles. */
+.bg-smoke-light {
+    background-color: rgba(0, 0, 0, 0.4);
+}

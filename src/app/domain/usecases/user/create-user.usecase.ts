@@ -7,7 +7,7 @@ import { ResponseModel, UserRequest } from '../../models/user.model';
     providedIn: 'root'
 })
 export class CreateUserUseCase {
-    constructor(@Inject('UserRepository') private userRepository: UserRepository) { }
+    constructor(private userRepository: UserRepository) { }
 
     execute(user: UserRequest): Observable<ResponseModel<string>> {
         return this.userRepository.createUser(user);

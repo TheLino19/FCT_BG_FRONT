@@ -6,6 +6,7 @@ import { CreateUserUseCase } from '../../../domain/usecases/user/create-user.use
 import { UpdateUserUseCase } from '../../../domain/usecases/user/update-user.usecase';
 import { DeleteUserUseCase } from '../../../domain/usecases/user/delete-user.usecase';
 import { UserRequest, UserResponse, UserEditRequest } from '../../../domain/models/user.model';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-user',
@@ -26,9 +27,11 @@ export class UserComponent implements OnInit {
   pageSize: number = 10;
   disableNext: boolean = false;
 
-  // Create/Edit User Form
+  // Modal
+  showModal: boolean = false;
   isEditing: boolean = false;
-  currentUserId: string | null = null;
+  currentUserId: number | null = null;
+  errors: string[] = [];
   newUser: UserRequest = {
     userName: '',
     passwordHash: '',
@@ -55,7 +58,6 @@ export class UserComponent implements OnInit {
         next: (response) => {
           if (response.success && response.data) {
             this.users = response.data;
-            // Disable next button if fewer items than pageSize are returned
             this.disableNext = this.users.length < this.pageSize;
           } else {
             console.error('Error loading users:', response.message);
@@ -71,10 +73,21 @@ export class UserComponent implements OnInit {
       });
   }
 
+  openModal(): void {
+    this.showModal = true;
+    this.resetForm();
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+    this.resetForm();
+  }
+
   saveUser(): void {
+    this.errors = []; // Clear previous errors
     if (this.isEditing && this.currentUserId) {
       const editRequest: UserEditRequest = {
-        id: this.currentUserId,
+        id: this.currentUserId.toString(),
         nombre: this.newUser.nombre,
         apellidos: this.newUser.apellido,
         email: this.newUser.email,
@@ -84,32 +97,36 @@ export class UserComponent implements OnInit {
       this.updateUserUseCase.execute(editRequest).subscribe({
         next: (response) => {
           if (response.success) {
-            alert('Usuario actualizado exitosamente');
+            Swal.fire('Éxito', 'Usuario actualizado exitosamente', 'success');
             this.loadUsers();
-            this.resetForm();
+            this.closeModal();
           } else {
-            alert('Error al actualizar usuario: ' + response.message);
+            this.errors = response.errors || [response.message || 'Error desconocido'];
+            Swal.fire('Error', this.errors.join('<br>'), 'error');
           }
         },
         error: (err) => {
           console.error('Error updating user:', err);
-          alert('Error al actualizar usuario');
+          this.errors = ['Error de conexión al actualizar usuario'];
+          Swal.fire('Error', 'Error de conexión al actualizar usuario', 'error');
         }
       });
     } else {
       this.createUserUseCase.execute(this.newUser).subscribe({
         next: (response) => {
           if (response.success) {
-            alert('Usuario creado exitosamente');
+            Swal.fire('Éxito', 'Usuario creado exitosamente', 'success');
             this.loadUsers();
-            this.resetForm();
+            this.closeModal();
           } else {
-            alert('Error al crear usuario: ' + response.message);
+            this.errors = response.errors || [response.message || 'Error desconocido'];
+            Swal.fire('Error', this.errors.join('<br>'), 'error');
           }
         },
         error: (err) => {
           console.error('Error creating user:', err);
-          alert('Error al crear usuario');
+          this.errors = ['Error de conexión al crear usuario'];
+          Swal.fire('Error', 'Error de conexión al crear usuario', 'error');
         }
       });
     }
@@ -117,42 +134,52 @@ export class UserComponent implements OnInit {
 
   editUser(user: UserResponse): void {
     this.isEditing = true;
-    this.currentUserId = user.idUsuario.toString();
-    // Assuming 'nombres' contains "Name Surname" or just "Name"
-    // We'll just put everything in 'nombre' for now or try to split if needed.
-    // Given the DTOs, let's just use what we have.
+    this.currentUserId = user.idUsuario;
+    this.showModal = true;
     this.newUser = {
       userName: user.userName,
-      passwordHash: '', // Password not editable here
-      nombre: user.nombres, // Mapping full name to nombre
-      apellido: '', // We don't have separate surname in response, leaving empty or need to handle
+      passwordHash: '', // Password not returned by API usually, or keep empty to not change
+      nombre: user.nombres, // Assuming names are split or just one field
+      apellido: '', // API might return full name in 'nombres'
       email: user.email,
       rol: user.rol
     };
   }
 
   deleteUser(id: number): void {
-    if (confirm('¿Está seguro de eliminar este usuario?')) {
-      this.deleteUserUseCase.execute(id).subscribe({
-        next: (response) => {
-          if (response.success) {
-            alert('Usuario eliminado exitosamente');
-            this.loadUsers();
-          } else {
-            alert('Error al eliminar usuario: ' + response.message);
+    Swal.fire({
+      title: '¿Está seguro?',
+      text: "No podrá revertir esta acción",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.deleteUserUseCase.execute(id).subscribe({
+          next: (response) => {
+            if (response.success) {
+              Swal.fire('Eliminado', 'El usuario ha sido eliminado.', 'success');
+              this.loadUsers();
+            } else {
+              Swal.fire('Error', 'No se pudo eliminar el usuario: ' + response.message, 'error');
+            }
+          },
+          error: (err) => {
+            console.error('Error deleting user:', err);
+            Swal.fire('Error', 'Error al eliminar usuario', 'error');
           }
-        },
-        error: (err) => {
-          console.error('Error deleting user:', err);
-          alert('Error al eliminar usuario');
-        }
-      });
-    }
+        });
+      }
+    });
   }
 
   resetForm(): void {
     this.isEditing = false;
     this.currentUserId = null;
+    this.errors = [];
     this.newUser = {
       userName: '',
       passwordHash: '',
@@ -180,5 +207,12 @@ export class UserComponent implements OnInit {
       this.pageNumber--;
       this.loadUsers();
     }
+  }
+
+  getFieldErrors(field: string): string[] {
+    if (!this.errors || this.errors.length === 0) return [];
+
+    const fieldLower = field.toLowerCase();
+    return this.errors.filter(error => error.toLowerCase().includes(fieldLower));
   }
 }

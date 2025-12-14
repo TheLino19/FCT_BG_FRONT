@@ -7,7 +7,7 @@ import { ClientEditRequest, ResponseModel } from '../../models/client.model';
     providedIn: 'root'
 })
 export class UpdateClientUseCase {
-    constructor(@Inject('ClientRepository') private clientRepository: ClientRepository) { }
+    constructor(private clientRepository: ClientRepository) { }
 
     execute(client: ClientEditRequest): Observable<ResponseModel<string>> {
         return this.clientRepository.updateClient(client);

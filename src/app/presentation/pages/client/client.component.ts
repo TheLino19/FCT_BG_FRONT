@@ -6,6 +6,7 @@ import { CreateClientUseCase } from '../../../domain/usecases/client/create-clie
 import { UpdateClientUseCase } from '../../../domain/usecases/client/update-client.usecase';
 import { DeleteClientUseCase } from '../../../domain/usecases/client/delete-client.usecase';
 import { ClientRequest, ClientResponse, ClientEditRequest } from '../../../domain/models/client.model';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-client',
@@ -26,9 +27,11 @@ export class ClientComponent implements OnInit {
   pageSize: number = 10;
   disableNext: boolean = false;
 
-  // Create/Edit Client Form
+  // Modal
+  showModal: boolean = false;
   isEditing: boolean = false;
   currentClientId: number | null = null;
+  errors: string[] = [];
   newClient: ClientRequest = {
     identificacion: '',
     tipoIdentifiacion: '',
@@ -70,7 +73,18 @@ export class ClientComponent implements OnInit {
       });
   }
 
+  openModal(): void {
+    this.showModal = true;
+    this.resetForm();
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+    this.resetForm();
+  }
+
   saveClient(): void {
+    this.errors = []; // Clear previous errors
     if (this.isEditing && this.currentClientId) {
       const editRequest: ClientEditRequest = {
         id: this.currentClientId,
@@ -83,32 +97,36 @@ export class ClientComponent implements OnInit {
       this.updateClientUseCase.execute(editRequest).subscribe({
         next: (response) => {
           if (response.success) {
-            alert('Cliente actualizado exitosamente');
+            Swal.fire('Éxito', 'Cliente actualizado exitosamente', 'success');
             this.loadClients();
-            this.resetForm();
+            this.closeModal();
           } else {
-            alert('Error al actualizar cliente: ' + response.message);
+            this.errors = response.errors || [response.message || 'Error desconocido'];
+            Swal.fire('Error', this.errors.join('<br>'), 'error');
           }
         },
         error: (err) => {
           console.error('Error updating client:', err);
-          alert('Error al actualizar cliente');
+          this.errors = ['Error de conexión al actualizar cliente'];
+          Swal.fire('Error', 'Error de conexión al actualizar cliente', 'error');
         }
       });
     } else {
       this.createClientUseCase.execute(this.newClient).subscribe({
         next: (response) => {
           if (response.success) {
-            alert('Cliente creado exitosamente');
+            Swal.fire('Éxito', 'Cliente creado exitosamente', 'success');
             this.loadClients();
-            this.resetForm();
+            this.closeModal();
           } else {
-            alert('Error al crear cliente: ' + response.message);
+            this.errors = response.errors || [response.message || 'Error desconocido'];
+            Swal.fire('Error', this.errors.join('<br>'), 'error');
           }
         },
         error: (err) => {
           console.error('Error creating client:', err);
-          alert('Error al crear cliente');
+          this.errors = ['Error de conexión al crear cliente'];
+          Swal.fire('Error', 'Error de conexión al crear cliente', 'error');
         }
       });
     }
@@ -117,9 +135,10 @@ export class ClientComponent implements OnInit {
   editClient(client: ClientResponse): void {
     this.isEditing = true;
     this.currentClientId = client.clienteId;
+    this.showModal = true;
     this.newClient = {
-      identificacion: '', // Not editable and not in response usually needed for update
-      tipoIdentifiacion: '', // Not editable
+      identificacion: '',
+      tipoIdentifiacion: '',
       nombre: client.nombre,
       telefono: client.telefono,
       email: client.correo,
@@ -128,27 +147,39 @@ export class ClientComponent implements OnInit {
   }
 
   deleteClient(id: number): void {
-    if (confirm('¿Está seguro de eliminar este cliente?')) {
-      this.deleteClientUseCase.execute(id).subscribe({
-        next: (response) => {
-          if (response.success) {
-            alert('Cliente eliminado exitosamente');
-            this.loadClients();
-          } else {
-            alert('Error al eliminar cliente: ' + response.message);
+    Swal.fire({
+      title: '¿Está seguro?',
+      text: "No podrá revertir esta acción",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.deleteClientUseCase.execute(id).subscribe({
+          next: (response) => {
+            if (response.success) {
+              Swal.fire('Eliminado', 'El cliente ha sido eliminado.', 'success');
+              this.loadClients();
+            } else {
+              Swal.fire('Error', 'No se pudo eliminar el cliente: ' + response.message, 'error');
+            }
+          },
+          error: (err) => {
+            console.error('Error deleting client:', err);
+            Swal.fire('Error', 'Error al eliminar cliente', 'error');
           }
-        },
-        error: (err) => {
-          console.error('Error deleting client:', err);
-          alert('Error al eliminar cliente');
-        }
-      });
-    }
+        });
+      }
+    });
   }
 
   resetForm(): void {
     this.isEditing = false;
     this.currentClientId = null;
+    this.errors = [];
     this.newClient = {
       identificacion: '',
       tipoIdentifiacion: '',
@@ -176,5 +207,12 @@ export class ClientComponent implements OnInit {
       this.pageNumber--;
       this.loadClients();
     }
+  }
+
+  getFieldErrors(field: string): string[] {
+    if (!this.errors || this.errors.length === 0) return [];
+
+    const fieldLower = field.toLowerCase();
+    return this.errors.filter(error => error.toLowerCase().includes(fieldLower));
   }
 }

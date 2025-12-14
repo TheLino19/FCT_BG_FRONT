@@ -7,7 +7,7 @@ import { ResponseModel, UserEditRequest } from '../../models/user.model';
     providedIn: 'root'
 })
 export class UpdateUserUseCase {
-    constructor(@Inject('UserRepository') private userRepository: UserRepository) { }
+    constructor(private userRepository: UserRepository) { }
 
     execute(user: UserEditRequest): Observable<ResponseModel<string>> {
         return this.userRepository.updateUser(user);

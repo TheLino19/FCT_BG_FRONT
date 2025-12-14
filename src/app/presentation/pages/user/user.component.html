@@ -1,98 +1,194 @@
-<div class="user-container">
-    <!-- Left Panel: List and Filters -->
-    <div class="list-panel">
-        <h2>Gestión de Usuarios</h2>
+<div class="container mx-auto p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-pink-700">Gestión de Usuarios</h2>
+        <button (click)="openModal()"
+            class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded shadow transition duration-300">
+            Nuevo Usuario
+        </button>
+    </div>
 
-        <div class="filters">
-            <div class="form-group">
-                <label>Nombre:</label>
-                <input type="text" [(ngModel)]="filterName" (input)="onFilterChange()"
-                    placeholder="Buscar por nombre...">
-            </div>
-            <div class="form-group">
-                <label>Estado:</label>
-                <select [(ngModel)]="filterState" (change)="onFilterChange()">
-                    <option [ngValue]="null">Todos</option>
-                    <option [ngValue]="true">Activo</option>
-                    <option [ngValue]="false">Inactivo</option>
-                </select>
-            </div>
+    <!-- Filters -->
+    <div class="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Nombre:</label>
+            <input type="text" [(ngModel)]="filterName" (input)="onFilterChange()"
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                placeholder="Buscar por nombre...">
         </div>
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Estado:</label>
+            <select [(ngModel)]="filterState" (change)="onFilterChange()"
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option [ngValue]="null">Todos</option>
+                <option [ngValue]="true">Activo</option>
+                <option [ngValue]="false">Inactivo</option>
+            </select>
+        </div>
+    </div>
 
-        <table class="user-table">
+    <!-- Table -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <table class="min-w-full leading-normal">
             <thead>
                 <tr>
-                    <th>Nombre</th>
-                    <th>Usuario</th>
-                    <th>Email</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-pink-100 text-left text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                        Nombre
+                    </th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-pink-100 text-left text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                        Usuario
+                    </th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-pink-100 text-left text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                        Email
+                    </th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-pink-100 text-left text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                        Rol
+                    </th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-pink-100 text-left text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                        Estado
+                    </th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-pink-100 text-left text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                        Acciones
+                    </th>
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let user of users">
-                    <td>{{ user.nombres }}</td>
-                    <td>{{ user.userName }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.rol }}</td>
-                    <td>
-                        <span [class.active]="user.activo" [class.inactive]="!user.activo">
-                            {{ user.activo ? 'Activo' : 'Inactivo' }}
+                <tr *ngFor="let user of users" class="hover:bg-gray-50">
+                    <td class="px-5 py-5 border-b border-gray-200 text-sm">
+                        <p class="text-gray-900 whitespace-no-wrap">{{ user.nombres }}</p>
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 text-sm">
+                        <p class="text-gray-900 whitespace-no-wrap">{{ user.userName }}</p>
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 text-sm">
+                        <p class="text-gray-900 whitespace-no-wrap">{{ user.email }}</p>
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 text-sm">
+                        <p class="text-gray-900 whitespace-no-wrap">{{ user.rol }}</p>
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 text-sm">
+                        <span class="relative inline-block px-3 py-1 font-semibold leading-tight"
+                            [ngClass]="{'text-green-900': user.activo, 'text-red-900': !user.activo}">
+                            <span aria-hidden="true" class="absolute inset-0 opacity-50 rounded-full"
+                                [ngClass]="{'bg-green-200': user.activo, 'bg-red-200': !user.activo}"></span>
+                            <span class="relative">{{ user.activo ? 'Activo' : 'Inactivo' }}</span>
                         </span>
                     </td>
-                    <td class="actions">
-                        <button class="btn-icon edit" (click)="editUser(user)" title="Editar">
-                            ✏️
-                        </button>
-                        <button class="btn-icon delete" (click)="deleteUser(user.idUsuario)" title="Eliminar">
-                            🗑️
-                        </button>
+                    <td class="px-5 py-5 border-b border-gray-200 text-sm">
+                        <div class="flex gap-2">
+                            <button (click)="editUser(user)" class="text-blue-600 hover:text-blue-900" title="Editar">
+                                ✏️
+                            </button>
+                            <button (click)="deleteUser(user.idUsuario)" class="text-red-600 hover:text-red-900"
+                                title="Eliminar">
+                                🗑️
+                            </button>
+                        </div>
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <div class="pagination">
-            <button (click)="prevPage()" [disabled]="pageNumber === 1">Anterior</button>
-            <span>Página {{ pageNumber }}</span>
-            <button (click)="nextPage()" [disabled]="disableNext">Siguiente</button>
+        <!-- Pagination -->
+        <div class="px-5 py-5 bg-white border-t flex flex-col xs:flex-row items-center xs:justify-between">
+            <div class="inline-flex mt-2 xs:mt-0">
+                <button (click)="prevPage()" [disabled]="pageNumber === 1"
+                    class="text-sm bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-l disabled:opacity-50">
+                    Anterior
+                </button>
+                <span class="text-sm bg-gray-100 text-gray-800 font-semibold py-2 px-4">
+                    {{ pageNumber }}
+                </span>
+                <button (click)="nextPage()" [disabled]="disableNext"
+                    class="text-sm bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-r disabled:opacity-50">
+                    Siguiente
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Right Panel: Create/Edit User Form -->
-    <div class="create-panel">
-        <h3>{{ isEditing ? 'Editar Usuario' : 'Crear Nuevo Usuario' }}</h3>
-        <form (ngSubmit)="saveUser()">
-            <div class="form-group" *ngIf="!isEditing">
-                <label>Usuario:</label>
-                <input type="text" [(ngModel)]="newUser.userName" name="userName" required>
-            </div>
-            <div class="form-group" *ngIf="!isEditing">
-                <label>Contraseña:</label>
-                <input type="password" [(ngModel)]="newUser.passwordHash" name="passwordHash" required>
-            </div>
-            <div class="form-group">
-                <label>Nombre:</label>
-                <input type="text" [(ngModel)]="newUser.nombre" name="nombre" required>
-            </div>
-            <div class="form-group">
-                <label>Apellido:</label>
-                <input type="text" [(ngModel)]="newUser.apellido" name="apellido" required>
-            </div>
-            <div class="form-group">
-                <label>Email:</label>
-                <input type="email" [(ngModel)]="newUser.email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label>Rol:</label>
-                <input type="text" [(ngModel)]="newUser.rol" name="rol" required>
+    <!-- Modal -->
+    <div *ngIf="showModal" class="fixed inset-0 z-50 overflow-auto bg-smoke-light flex">
+        <div class="fixed inset-0 bg-black opacity-50" (click)="closeModal()"></div>
+        <div class="relative p-8 bg-white w-full max-w-md m-auto flex-col flex rounded-lg shadow-lg z-50">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-2xl font-bold text-pink-700">{{ isEditing ? 'Editar Usuario' : 'Crear Nuevo Usuario' }}
+                </h3>
+                <button (click)="closeModal()" class="text-gray-500 hover:text-gray-700">
+                    <span class="text-2xl">&times;</span>
+                </button>
             </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn-create">{{ isEditing ? 'Guardar Cambios' : 'Crear Usuario' }}</button>
-                <button type="button" class="btn-cancel" *ngIf="isEditing" (click)="resetForm()">Cancelar</button>
-            </div>
-        </form>
+            <form (ngSubmit)="saveUser()">
+                <div class="mb-4" *ngIf="!isEditing">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Usuario</label>
+                    <input type="text" [(ngModel)]="newUser.userName" name="userName"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required>
+                    <div class="text-red-500 text-xs italic" *ngFor="let error of getFieldErrors('userName')">{{ error
+                        }}</div>
+                </div>
+
+                <div class="mb-4" *ngIf="!isEditing">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Contraseña</label>
+                    <input type="password" [(ngModel)]="newUser.passwordHash" name="passwordHash"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required>
+                    <div class="text-red-500 text-xs italic" *ngFor="let error of getFieldErrors('passwordHash')">{{
+                        error }}</div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Nombre</label>
+                    <input type="text" [(ngModel)]="newUser.nombre" name="nombre"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required>
+                    <div class="text-red-500 text-xs italic" *ngFor="let error of getFieldErrors('nombre')">{{ error }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Apellido</label>
+                    <input type="text" [(ngModel)]="newUser.apellido" name="apellido"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required>
+                    <div class="text-red-500 text-xs italic" *ngFor="let error of getFieldErrors('apellido')">{{ error
+                        }}</div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                    <input type="email" [(ngModel)]="newUser.email" name="email"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required>
+                    <div class="text-red-500 text-xs italic" *ngFor="let error of getFieldErrors('email')">{{ error }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Rol</label>
+                    <input type="text" [(ngModel)]="newUser.rol" name="rol"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required>
+                    <div class="text-red-500 text-xs italic" *ngFor="let error of getFieldErrors('rol')">{{ error }}
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end mt-6">
+                    <button type="button" (click)="closeModal()"
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded">
+                        {{ isEditing ? 'Guardar Cambios' : 'Crear Usuario' }}
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>

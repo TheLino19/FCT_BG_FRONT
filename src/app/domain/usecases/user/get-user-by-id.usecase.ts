@@ -7,7 +7,7 @@ import { ResponseModel, UserResponse } from '../../models/user.model';
     providedIn: 'root'
 })
 export class GetUserByIdUseCase {
-    constructor(@Inject('UserRepository') private userRepository: UserRepository) { }
+    constructor(private userRepository: UserRepository) { }
 
     execute(id: number): Observable<ResponseModel<UserResponse>> {
         return this.userRepository.getUserById(id);
