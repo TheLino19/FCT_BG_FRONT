@@ -1,0 +1,98 @@
+<div class="client-container">
+    <!-- Left Panel: List and Filters -->
+    <div class="list-panel">
+        <h2>Gestión de Clientes</h2>
+
+        <div class="filters">
+            <div class="form-group">
+                <label>Nombre:</label>
+                <input type="text" [(ngModel)]="filterName" (input)="onFilterChange()"
+                    placeholder="Buscar por nombre...">
+            </div>
+            <div class="form-group">
+                <label>Estado:</label>
+                <select [(ngModel)]="filterState" (change)="onFilterChange()">
+                    <option [ngValue]="null">Todos</option>
+                    <option [ngValue]="true">Activo</option>
+                    <option [ngValue]="false">Inactivo</option>
+                </select>
+            </div>
+        </div>
+
+        <table class="client-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th>Dirección</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let client of clients">
+                    <td>{{ client.nombre }}</td>
+                    <td>{{ client.telefono }}</td>
+                    <td>{{ client.correo }}</td>
+                    <td>{{ client.direccion }}</td>
+                    <td>
+                        <span [class.active]="client.activo" [class.inactive]="!client.activo">
+                            {{ client.activo ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+                    <td class="actions">
+                        <button class="btn-icon edit" (click)="editClient(client)" title="Editar">
+                            ✏️
+                        </button>
+                        <button class="btn-icon delete" (click)="deleteClient(client.clienteId)" title="Eliminar">
+                            🗑️
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            <button (click)="prevPage()" [disabled]="pageNumber === 1">Anterior</button>
+            <span>Página {{ pageNumber }}</span>
+            <button (click)="nextPage()" [disabled]="disableNext">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- Right Panel: Create/Edit Client Form -->
+    <div class="create-panel">
+        <h3>{{ isEditing ? 'Editar Cliente' : 'Crear Nuevo Cliente' }}</h3>
+        <form (ngSubmit)="saveClient()">
+            <div class="form-group" *ngIf="!isEditing">
+                <label>Identificación:</label>
+                <input type="text" [(ngModel)]="newClient.identificacion" name="identificacion" required>
+            </div>
+            <div class="form-group" *ngIf="!isEditing">
+                <label>Tipo Identificación:</label>
+                <input type="text" [(ngModel)]="newClient.tipoIdentifiacion" name="tipoIdentifiacion" required>
+            </div>
+            <div class="form-group">
+                <label>Nombre:</label>
+                <input type="text" [(ngModel)]="newClient.nombre" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label>Teléfono:</label>
+                <input type="text" [(ngModel)]="newClient.telefono" name="telefono" required>
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" [(ngModel)]="newClient.email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>Dirección:</label>
+                <input type="text" [(ngModel)]="newClient.direccion" name="direccion" required>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-create">{{ isEditing ? 'Guardar Cambios' : 'Crear Cliente' }}</button>
+                <button type="button" class="btn-cancel" *ngIf="isEditing" (click)="resetForm()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
