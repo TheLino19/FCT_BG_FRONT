@@ -1,15 +1,26 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { GetInvoicesUseCase } from '../../../domain/usecases/invoice/get-invoices.usecase';
 import { CreateInvoiceUseCase } from '../../../domain/usecases/invoice/create-invoice.usecase';
 import { DeleteInvoiceUseCase } from '../../../domain/usecases/invoice/delete-invoice.usecase';
 import { GetClientsUseCase } from '../../../domain/usecases/client/get-clients.usecase';
 import { GetUsersUseCase } from '../../../domain/usecases/user/get-users.usecase';
+import { GetProductsUseCase } from '../../../domain/usecases/product/get-products.usecase';
 import { InvoiceResponse, InvoiceRequest } from '../../../domain/models/invoice.model';
 import { ClientResponse } from '../../../domain/models/client.model';
 import { UserResponse } from '../../../domain/models/user.model';
+import { ProductResponse } from '../../../domain/models/product.model';
 import Swal from 'sweetalert2';
+
+interface InvoiceDetail {
+  productoId: number;
+  nombreProducto: string;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+}
 
 @Component({
   selector: 'app-invoice',
@@ -22,6 +33,7 @@ export class InvoiceComponent implements OnInit {
   invoices: InvoiceResponse[] = [];
   clients: ClientResponse[] = [];
   sellers: UserResponse[] = [];
+  products: ProductResponse[] = [];
 
   // Filters
   filterNumber: string = '';
@@ -34,30 +46,40 @@ export class InvoiceComponent implements OnInit {
   pageSize: number = 10;
   disableNext: boolean = false;
 
-  // Modal
-  showModal: boolean = false;
+  // Form state
+  showForm: boolean = false;
+
+  // Invoice creation form
+  selectedClientId: number = 0;
+  clientPhone: string = '';
+  clientEmail: string = '';
+  invoiceDate: string = '';
+  paymentMethod: string = 'Efectivo';
+  invoiceStatus: string = 'Pendiente';
+  invoiceDetails: InvoiceDetail[] = [];
+  total: number = 0;
+
+  paymentMethods = ['Efectivo', 'Tarjeta', 'Transferencia'];
+  invoiceStatuses = ['Pendiente', 'Pagada', 'Cancelada'];
+  currentUserId: number = 1;
+
   errors: string[] = [];
-  newInvoice: InvoiceRequest = {
-    numeroFactura: '',
-    clienteId: 0,
-    usuarioId: 0,
-    total: 0,
-    tipoPago: 'Efectivo', // Default
-    estadoPago: 'Pagado' // Default
-  };
 
   constructor(
+    private router: Router,
     private getInvoicesUseCase: GetInvoicesUseCase,
     private createInvoiceUseCase: CreateInvoiceUseCase,
     private deleteInvoiceUseCase: DeleteInvoiceUseCase,
     private getClientsUseCase: GetClientsUseCase,
-    private getUsersUseCase: GetUsersUseCase
+    private getUsersUseCase: GetUsersUseCase,
+    private getProductsUseCase: GetProductsUseCase
   ) { }
 
   ngOnInit(): void {
     this.loadInvoices();
     this.loadClients();
     this.loadSellers();
+    this.loadProducts();
   }
 
   loadInvoices(): void {
@@ -107,41 +129,143 @@ export class InvoiceComponent implements OnInit {
     });
   }
 
-  openModal(): void {
-    this.showModal = true;
-    this.errors = [];
-    this.newInvoice = {
-      numeroFactura: '',
-      clienteId: 0,
-      usuarioId: 0,
-      total: 0,
-      tipoPago: 'Efectivo',
-      estadoPago: 'Pagado'
-    };
+  loadProducts(): void {
+    this.getProductsUseCase.execute({
+      pageNumber: 1,
+      pageSize: 100,
+      activo: true
+    }).subscribe({
+      next: (data) => {
+        this.products = data;
+      },
+      error: (error) => {
+        console.error('Error loading products:', error);
+      }
+    });
   }
 
-  closeModal(): void {
-    this.showModal = false;
+  openForm(): void {
+    this.showForm = true;
+    this.setCurrentDate();
+    this.resetForm();
+    this.addProductRow();
+  }
+
+  closeForm(): void {
+    this.showForm = false;
+    this.resetForm();
+  }
+
+  resetForm(): void {
+    this.selectedClientId = 0;
+    this.clientPhone = '';
+    this.clientEmail = '';
+    this.paymentMethod = 'Efectivo';
+    this.invoiceStatus = 'Pendiente';
+    this.invoiceDetails = [];
+    this.total = 0;
+    this.errors = [];
+  }
+
+  setCurrentDate(): void {
+    const today = new Date();
+    this.invoiceDate = today.toISOString().split('T')[0];
+  }
+
+  onClientChange(): void {
+    const client = this.clients.find(c => c.clienteId === this.selectedClientId);
+    if (client) {
+      this.clientPhone = client.telefono;
+      this.clientEmail = client.correo;
+    } else {
+      this.clientPhone = '';
+      this.clientEmail = '';
+    }
+  }
+
+  onProductChange(detail: InvoiceDetail): void {
+    const product = this.products.find(p => p.productoId === detail.productoId);
+    if (product) {
+      detail.nombreProducto = product.nombre;
+      detail.precioUnitario = product.precioUnitario;
+      this.calculateSubtotal(detail);
+    }
+  }
+
+  onQuantityChange(detail: InvoiceDetail): void {
+    this.calculateSubtotal(detail);
+  }
+
+  calculateSubtotal(detail: InvoiceDetail): void {
+    detail.subtotal = detail.cantidad * detail.precioUnitario;
+    this.calculateTotal();
+  }
+
+  calculateTotal(): void {
+    this.total = this.invoiceDetails.reduce((sum, d) => sum + d.subtotal, 0);
+  }
+
+  addProductRow(): void {
+    this.invoiceDetails.push({
+      productoId: 0,
+      nombreProducto: '',
+      cantidad: 1,
+      precioUnitario: 0,
+      subtotal: 0
+    });
+  }
+
+  removeProductRow(index: number): void {
+    if (this.invoiceDetails.length > 1) {
+      this.invoiceDetails.splice(index, 1);
+      this.calculateTotal();
+    } else {
+      Swal.fire('Advertencia', 'Debe haber al menos un producto', 'warning');
+    }
   }
 
   saveInvoice(): void {
-    this.errors = [];
-    this.createInvoiceUseCase.execute(this.newInvoice).subscribe({
-      next: (response) => {
-        if (response.success) {
-          Swal.fire('Éxito', 'Factura creada exitosamente', 'success');
-          this.loadInvoices();
-          this.closeModal();
-        } else {
-          this.errors = response.errors || [response.message || 'Error desconocido'];
-          Swal.fire('Error', this.errors.join('<br>'), 'error');
-        }
+    if (this.selectedClientId === 0) {
+      Swal.fire('Error', 'Debe seleccionar un cliente', 'error');
+      return;
+    }
+
+    const hasInvalidProducts = this.invoiceDetails.some(d => d.productoId === 0 || d.cantidad <= 0);
+    if (hasInvalidProducts) {
+      Swal.fire('Error', 'Todos los productos deben tener un producto seleccionado y cantidad válida', 'error');
+      return;
+    }
+
+    if (this.total <= 0) {
+      Swal.fire('Error', 'El total debe ser mayor a 0', 'error');
+      return;
+    }
+
+    const invoiceRequest = {
+      numeroFactura: this.generateInvoiceNumber(),
+      clienteId: this.selectedClientId,
+      usuarioId: this.currentUserId,
+      total: this.total,
+      tipoPago: this.paymentMethod,
+      estadoPago: this.invoiceStatus
+    };
+
+    this.createInvoiceUseCase.execute(invoiceRequest).subscribe({
+      next: () => {
+        Swal.fire('Éxito', 'Factura creada correctamente', 'success');
+        this.loadInvoices();
+        this.closeForm();
       },
-      error: (err) => {
-        console.error('Error creating invoice:', err);
-        Swal.fire('Error', 'Error de conexión al crear factura', 'error');
+      error: (error) => {
+        console.error('Error creating invoice:', error);
+        Swal.fire('Error', error.error?.message || 'No se pudo crear la factura', 'error');
       }
     });
+  }
+
+  generateInvoiceNumber(): string {
+    const timestamp = Date.now();
+    return `FAC-${timestamp}`;
   }
 
   deleteInvoice(id: number): void {

@@ -4,6 +4,7 @@ export interface ProductResponse {
     nombre: string;
     codigo: string;
     precioUnitario: number;
+    activo: boolean;
 }
 
 // Product Create Request
