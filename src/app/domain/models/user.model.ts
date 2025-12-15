@@ -29,5 +29,5 @@ export interface UserResponse {
     email: string;
     rol: string;
     activo: boolean;
-    fechaCreacion: string; // DateTime in Swagger is string
+    fechaCreacion: string; 
 }

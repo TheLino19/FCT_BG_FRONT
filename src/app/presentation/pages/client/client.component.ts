@@ -18,16 +18,16 @@ import Swal from 'sweetalert2';
 export class ClientComponent implements OnInit {
   clients: ClientResponse[] = [];
 
-  // Filters
+
   filterName: string = '';
   filterState: boolean | null = null;
 
-  // Pagination
+  
   pageNumber: number = 1;
   pageSize: number = 10;
   disableNext: boolean = false;
 
-  // Modal
+ 
   showModal: boolean = false;
   isEditing: boolean = false;
   currentClientId: number | null = null;
@@ -84,7 +84,7 @@ export class ClientComponent implements OnInit {
   }
 
   saveClient(): void {
-    this.errors = []; // Clear previous errors
+    this.errors = []; 
     if (this.isEditing && this.currentClientId) {
       const editRequest: ClientEditRequest = {
         id: this.currentClientId,

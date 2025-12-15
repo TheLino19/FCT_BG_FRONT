@@ -7,9 +7,9 @@
         </button>
     </div>
 
-    <!-- List View -->
+
     <div *ngIf="!showForm">
-        <!-- Filters -->
+
         <div class="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4">
             <div class="flex-1 min-w-[200px]">
                 <label class="block text-gray-700 text-sm font-bold mb-2">Número Factura:</label>
@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        <!-- Table -->
+
         <div class="bg-white shadow-md rounded-lg overflow-hidden">
             <table class="min-w-full leading-normal">
                 <thead>
@@ -88,7 +88,7 @@
                 </tbody>
             </table>
 
-            <!-- Pagination -->
+
             <div class="px-5 py-5 bg-white border-t flex flex-col xs:flex-row items-center xs:justify-between">
                 <div class="inline-flex mt-2 xs:mt-0">
                     <button (click)="prevPage()" [disabled]="pageNumber === 1"
@@ -107,9 +107,9 @@
         </div>
     </div>
 
-    <!-- Form View -->
+
     <div *ngIf="showForm" class="bg-white shadow-lg rounded-lg p-8">
-        <!-- Header -->
+
         <div class="border-b-2 border-pink-600 pb-4 mb-6 flex justify-between items-center">
             <div>
                 <h1 class="text-3xl font-bold text-pink-700">{{ isEditMode ? 'EDITAR FACTURA' : 'CREAR NUEVA FACTURA' }}
@@ -122,7 +122,7 @@
             </button>
         </div>
 
-        <!-- Información del Cliente -->
+
         <div class="mb-8">
             <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                 <span
@@ -152,7 +152,7 @@
             </div>
         </div>
 
-        <!-- Información de la Factura -->
+
         <div class="mb-8">
             <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                 <span
@@ -184,7 +184,7 @@
             </div>
         </div>
 
-        <!-- Detalle de Productos -->
+
         <div class="mb-8">
             <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                 <span
@@ -253,7 +253,7 @@
             </div>
         </div>
 
-        <!-- Total -->
+
         <div class="mb-8">
             <div class="bg-pink-50 border-2 border-pink-600 rounded-lg p-6">
                 <div class="flex justify-between items-center">
@@ -263,7 +263,7 @@
             </div>
         </div>
 
-        <!-- Botones de Acción -->
+
         <div class="flex justify-end gap-4 pt-6 border-t-2 border-gray-200">
             <button (click)="closeForm()"
                 class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded transition duration-300">

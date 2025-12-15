@@ -26,18 +26,15 @@ export class ProductComponent implements OnInit {
     precioUnitario: 0
   };
 
-  // Pagination
   pageNumber = 1;
   pageSize = 10;
   disableNext = false;
 
-  // Filters
+
   filterName = '';
 
-  // Validation errors
   validationErrors: { [key: string]: string[] } = {};
 
-  // Current editing product ID
   currentProductId: number | null = null;
 
   constructor(

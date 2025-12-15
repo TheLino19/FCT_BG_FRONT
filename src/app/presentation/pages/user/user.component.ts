@@ -84,7 +84,7 @@ export class UserComponent implements OnInit {
   }
 
   saveUser(): void {
-    this.errors = []; // Clear previous errors
+    this.errors = []; 
     if (this.isEditing && this.currentUserId) {
       const editRequest: UserEditRequest = {
         id: this.currentUserId.toString(),
@@ -138,9 +138,9 @@ export class UserComponent implements OnInit {
     this.showModal = true;
     this.newUser = {
       userName: user.userName,
-      passwordHash: '', // Password not returned by API usually, or keep empty to not change
-      nombre: user.nombres, // Assuming names are split or just one field
-      apellido: '', // API might return full name in 'nombres'
+      passwordHash: '', 
+      nombre: user.nombres, 
+      apellido: '', 
       email: user.email,
       rol: user.rol
     };

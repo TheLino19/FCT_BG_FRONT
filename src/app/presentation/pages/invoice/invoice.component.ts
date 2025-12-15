@@ -117,7 +117,7 @@ export class InvoiceComponent implements OnInit {
   }
 
   loadClients(): void {
-    // Load all active clients (assuming large page size or implementing search later)
+
     this.getClientsUseCase.execute(true, '', 1, 100).subscribe({
       next: (res) => {
         if (res.success && res.data) {
@@ -128,7 +128,6 @@ export class InvoiceComponent implements OnInit {
   }
 
   loadSellers(): void {
-    // Load all active users (sellers)
     this.getUsersUseCase.execute(true, '', 1, 100).subscribe({
       next: (res) => {
         if (res.success && res.data) {
@@ -175,7 +174,7 @@ export class InvoiceComponent implements OnInit {
           // Mapear fecha
           this.invoiceDate = data.fechaCreacion.split('T')[0];
 
-          // Mapear cliente (buscando por nombre ya que no tenemos ID en la respuesta)
+          // Mapear cliente 
           const client = this.clients.find(c => c.nombre === data.nombre);
           if (client) {
             this.selectedClientId = client.clienteId;
@@ -285,7 +284,6 @@ export class InvoiceComponent implements OnInit {
     const detail = this.invoiceDetails[index];
 
     if (this.isEditMode && detail.facturaDetalleId) {
-      // Si estamos editando y el detalle tiene ID, eliminar del backend
       Swal.fire({
         title: '¿Eliminar producto?',
         text: "El producto se eliminará de la factura guardada",
@@ -315,7 +313,6 @@ export class InvoiceComponent implements OnInit {
         }
       });
     } else {
-      // Si es nuevo o no estamos en modo edición, solo quitar de la lista
       if (this.invoiceDetails.length > 1) {
         this.invoiceDetails.splice(index, 1);
         this.calculateTotal();
@@ -342,7 +339,6 @@ export class InvoiceComponent implements OnInit {
       return;
     }
 
-    // 1. Preparar request de cabecera (sin detalles)
     const invoiceRequest: InvoiceRequest = {
       numeroFactura: this.isEditMode ? `FAC-${this.currentInvoiceId}` : this.generateInvoiceNumber(),
       clienteId: this.selectedClientId,
@@ -350,12 +346,11 @@ export class InvoiceComponent implements OnInit {
       total: this.total,
       tipoPago: this.paymentMethod,
       estadoPago: this.invoiceStatus,
-      dtoDetalleFacturas: [] // Enviamos vacío o lo quitamos si el backend lo ignora
+      dtoDetalleFacturas: []
     };
 
     const saveDetails = (invoiceId: number) => {
       if (this.invoiceDetails.length === 0) {
-        // Si no hay detalles, solo notificar éxito (caso raro pero posible)
         Swal.fire('Éxito', `Factura ${this.isEditMode ? 'actualizada' : 'creada'} correctamente`, 'success');
         this.loadInvoices();
         this.closeForm();
@@ -379,17 +374,15 @@ export class InvoiceComponent implements OnInit {
         error: (error) => {
           console.error('Error saving details:', error);
           Swal.fire('Advertencia', 'Factura guardada pero hubo error al guardar los detalles', 'warning');
-          this.loadInvoices(); // Recargamos de todas formas
+          this.loadInvoices();
           this.closeForm();
         }
       });
     };
 
     if (this.isEditMode) {
-      // Si la factura existe, solo llama /InsertarDetalleFactura para que actualice los detalles
       saveDetails(this.currentInvoiceId);
     } else {
-      // Si se crea una nueva factura, llama /CrearFactura y luego agrega los detalles si existen
       const invoiceRequest: InvoiceRequest = {
         numeroFactura: this.generateInvoiceNumber(),
         clienteId: this.selectedClientId,
@@ -402,8 +395,6 @@ export class InvoiceComponent implements OnInit {
 
       this.createInvoiceUseCase.execute(invoiceRequest).subscribe({
         next: (response) => {
-          // Asumimos que el backend devuelve el ID en response.data
-          // Intentamos convertir data a número si es string
           let newInvoiceId = 0;
           if (typeof response.data === 'number') {
             newInvoiceId = response.data;
@@ -426,98 +417,60 @@ export class InvoiceComponent implements OnInit {
         }
       });
     }
-    // Según requerimiento: Al actualizar, solo insertamos los detalles
-    // El endpoint /EditarFactura no existe
-    saveDetails(this.currentInvoiceId);
-  } else {
-  const invoiceRequest: InvoiceRequest = {
-    numeroFactura: this.generateInvoiceNumber(),
-    clienteId: this.selectedClientId,
-    usuarioId: this.currentUserId,
-    total: this.total,
-    tipoPago: this.paymentMethod,
-    estadoPago: this.invoiceStatus,
-    dtoDetalleFacturas: []
-  };
-
-  this.createInvoiceUseCase.execute(invoiceRequest).subscribe({
-    next: (response) => {
-      // Asumimos que el backend devuelve el ID en response.data o response.message
-      // Si response.data es string, intentamos parsearlo si es un número, o usamos una lógica alternativa
-      // IMPORTANTE: Si el backend devuelve "Factura creada" en lugar del ID, esto fallará.
-      // Por ahora intentamos convertir data a número.
-      const newInvoiceId = Number(response.data);
-
-      if (!isNaN(newInvoiceId) && newInvoiceId > 0) {
-        saveDetails(newInvoiceId);
-      } else {
-        // Fallback: Si no devuelve ID, no podemos guardar detalles.
-        // Esto es crítico. Si el backend no devuelve ID, hay que avisar al usuario.
-        console.warn('Backend did not return a valid ID:', response.data);
-        Swal.fire('Advertencia', 'Factura creada pero no se pudo obtener el ID para guardar detalles', 'warning');
-        this.loadInvoices();
-        this.closeForm();
-      }
-    },
-    error: (error) => {
-      console.error('Error creating invoice:', error);
-      Swal.fire('Error', error.error?.message || 'No se pudo crear la factura', 'error');
-    }
-  });
-}
   }
 
-generateInvoiceNumber(): string {
-  const timestamp = Date.now();
-  return `FAC-${timestamp}`;
-}
+  generateInvoiceNumber(): string {
+    const timestamp = Date.now();
+    return `FAC-${timestamp}`;
+  }
 
-deleteInvoice(id: number): void {
-  Swal.fire({
-    title: '¿Está seguro?',
-    text: "No podrá revertir esta acción",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      this.deleteInvoiceUseCase.execute(id).subscribe({
-        next: (response) => {
-          if (response.success) {
-            Swal.fire('Eliminado', 'La factura ha sido eliminada.', 'success');
-            this.loadInvoices();
-          } else {
-            Swal.fire('Error', 'No se pudo eliminar la factura: ' + response.message, 'error');
+  deleteInvoice(id: number): void {
+    Swal.fire({
+      title: '¿Está seguro?',
+      text: "No podrá revertir esta acción",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.deleteInvoiceUseCase.execute(id).subscribe({
+          next: (response) => {
+            if (response.success) {
+              Swal.fire('Eliminado', 'La factura ha sido eliminada.', 'success');
+              this.loadInvoices();
+            } else {
+              Swal.fire('Error', 'No se pudo eliminar la factura: ' + response.message, 'error');
+            }
+          },
+          error: (err) => {
+            console.error('Error deleting invoice:', err);
+            Swal.fire('Error', 'Error al eliminar factura', 'error');
           }
-        },
-        error: (err) => {
-          console.error('Error deleting invoice:', err);
-          Swal.fire('Error', 'Error al eliminar factura', 'error');
-        }
-      });
+        });
+      }
+    });
+  }
+
+  onFilterChange(): void {
+    this.pageNumber = 1;
+    this.loadInvoices();
+  }
+
+  nextPage(): void {
+    if (!this.disableNext) {
+      this.pageNumber++;
+      this.loadInvoices();
     }
-  });
-}
-
-onFilterChange(): void {
-  this.pageNumber = 1;
-  this.loadInvoices();
-}
-
-nextPage(): void {
-  if(!this.disableNext) {
-  this.pageNumber++;
-  this.loadInvoices();
-}
   }
 
-prevPage(): void {
-  if(this.pageNumber > 1) {
-  this.pageNumber--;
-  this.loadInvoices();
-}
+  prevPage(): void {
+    if (this.pageNumber > 1) {
+      this.pageNumber--;
+      this.loadInvoices();
+    }
   }
 }
+

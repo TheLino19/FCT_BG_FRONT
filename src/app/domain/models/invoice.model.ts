@@ -21,7 +21,7 @@ export interface InvoiceEditRequest {
     cantidad: number;
     precioUnitario: number;
     subTotal: number;
-    facturaDetalleId?: number; // Optional, for tracking existing details
+    facturaDetalleId?: number; 
 }
 
 export interface InvoiceUpdateRequest {
@@ -38,7 +38,7 @@ export interface InvoiceResponse {
     facturaId: number;
     fechaModificacion: string;
     nombreCliente: string;
-    nombresCompleto: string; // Seller
+    nombresCompleto: string; 
     estadoFactura: string;
     totalFactura: number;
     activo: boolean;
