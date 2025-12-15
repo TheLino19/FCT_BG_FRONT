@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { InvoiceRequest, InvoiceListResponse, InvoiceSingleResponse } from '../../domain/models/invoice.model';
+import { InvoiceRequest, InvoiceListResponse, InvoiceSingleResponse, InvoiceEditRequest, InvoiceUpdateRequest } from '../../domain/models/invoice.model';
 import { ResponseModel } from '../../domain/models/user.model';
 
 @Injectable({
@@ -39,6 +39,15 @@ export class InvoiceApiService {
 
     createInvoice(invoice: InvoiceRequest): Observable<ResponseModel<string>> {
         return this.http.post<ResponseModel<string>>(`${this.apiUrl}/CrearFactura`, invoice);
+    }
+
+    insertInvoiceDetails(details: InvoiceEditRequest[]): Observable<ResponseModel<string>> {
+        return this.http.post<ResponseModel<string>>(`${this.apiUrl}/InsertarDetalleFactura`, details);
+    }
+
+    deleteInvoiceDetail(id: number): Observable<ResponseModel<number>> {
+        const params = new HttpParams().set('Id', id);
+        return this.http.post<ResponseModel<number>>(`${this.apiUrl}/EliminarDetalleFactura`, {}, { params });
     }
 
     deleteInvoice(id: number): Observable<ResponseModel<number>> {

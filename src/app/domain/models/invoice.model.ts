@@ -1,5 +1,10 @@
 import { ResponseModel } from './user.model';
 
+export interface InvoiceDetailRequest {
+    productoId: number;
+    cantidad: number;
+}
+
 export interface InvoiceRequest {
     numeroFactura: string;
     clienteId: number;
@@ -7,6 +12,7 @@ export interface InvoiceRequest {
     total: number;
     tipoPago: string;
     estadoPago: string;
+    dtoDetalleFacturas: InvoiceDetailRequest[];
 }
 
 export interface InvoiceEditRequest {
@@ -15,6 +21,17 @@ export interface InvoiceEditRequest {
     cantidad: number;
     precioUnitario: number;
     subTotal: number;
+    facturaDetalleId?: number; // Optional, for tracking existing details
+}
+
+export interface InvoiceUpdateRequest {
+    facturaId: number;
+    numeroFactura: string;
+    clienteId: number;
+    usuarioId: number;
+    total: number;
+    tipoPago: string;
+    estadoPago: string;
 }
 
 export interface InvoiceResponse {

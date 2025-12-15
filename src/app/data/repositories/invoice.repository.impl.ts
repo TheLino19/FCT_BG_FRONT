@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { InvoiceRepository } from '../../domain/interfaces/invoice.repository';
 import { InvoiceApiService } from '../sources/invoice-api.service';
-import { InvoiceRequest, InvoiceListResponse, InvoiceSingleResponse } from '../../domain/models/invoice.model';
+import { InvoiceRequest, InvoiceListResponse, InvoiceSingleResponse, InvoiceEditRequest, InvoiceUpdateRequest } from '../../domain/models/invoice.model';
 import { ResponseModel } from '../../domain/models/user.model';
 
 @Injectable({
@@ -28,6 +28,14 @@ export class InvoiceRepositoryImpl implements InvoiceRepository {
 
     createInvoice(invoice: InvoiceRequest): Observable<ResponseModel<string>> {
         return this.apiService.createInvoice(invoice);
+    }
+
+    insertInvoiceDetails(details: InvoiceEditRequest[]): Observable<ResponseModel<string>> {
+        return this.apiService.insertInvoiceDetails(details);
+    }
+
+    deleteInvoiceDetail(id: number): Observable<ResponseModel<number>> {
+        return this.apiService.deleteInvoiceDetail(id);
     }
 
     deleteInvoice(id: number): Observable<ResponseModel<number>> {
